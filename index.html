@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scan2Order | Vendor Login</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #ffffff;
+      width: 360px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #ff6f61;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      background: #e65b50;
+    }
+
+    .hint {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      margin-top: 10px;
+    }
+  </style>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA6vnk_Vf96qwLq0S3yMdChgxR9FsPNyzw",
+    authDomain: "scan2order-df6bb.firebaseapp.com",
+    projectId: "scan2order-df6bb",
+    storageBucket: "scan2order-df6bb.firebasestorage.app",
+    messagingSenderId: "422593854380",
+    appId: "1:422593854380:web:b024c9ae30d64ca3a79809"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  console.log("Firebase connected");
+
+  // 👶 Mobile → Email converter
+  function mobileToEmail(mobile) {
+    return mobile + "@scan2order.app";
+  }
+
+  // 👶 Register function
+  window.registerVendor = async function () {
+    const mobile = document.getElementById("mobile").value;
+    const password = document.getElementById("password").value;
+
+    if (!mobile || !password) {
+      alert("Please enter mobile and password");
+      return;
+    }
+
+    const email = mobileToEmail(mobile);
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("Registration successful ✅");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+  import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+// 👶 Login function
+window.loginVendor = async function () {
+  const mobile = document.getElementById("mobile").value;
+  const password = document.getElementById("password").value;
+
+  if (!mobile || !password) {
+    alert("Please enter mobile and password");
+    return;
+  }
+
+  const email = mobileToEmail(mobile);
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "vendor.html";
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+</script>
+
+
+</head>
+
+<body>
+
+  <div class="card">
+    <div class="logo">Scan2Order</div>
+    <div class="subtitle">Vendor Login</div>
+
+    <input type="text" id="mobile" placeholder="Mobile Number" />
+<input type="password" id="password" placeholder="Password" />
+
+
+    <button onclick="loginVendor()">Login</button>
+
+    <button style="background:#333;" onclick="registerVendor()">Register</button>
+
+
+    <div class="hint">
+      No OTP • Fast Login 
+    </div>
+  </div>
+
+</body>
+</html>

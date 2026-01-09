@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scan2Order | Menu</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+    }
+
+    .shop-name {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .item {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .price {
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="shop-name" id="shopName">Loading...</div>
+  <div id="menuList"></div>
+  <button id="orderBtn" style="
+  width:100%;
+  padding:14px;
+  margin-top:20px;
+  border:none;
+  border-radius:12px;
+  background:#25D366;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+">
+ Place Order
+</button>
+<div id="receipt" style="
+  display:none;
+  margin-top:20px;
+  padding:15px;
+  border-radius:10px;
+  background:#e8f5e9;
+">
+</div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, addDoc, collection
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA6vnk_Vf96qwLq0S3yMdChgxR9FsPNyzw",
+    authDomain: "scan2order-df6bb.firebaseapp.com",
+    projectId: "scan2order-df6bb",
+    storageBucket: "scan2order-df6bb.firebasestorage.app",
+    messagingSenderId: "422593854380",
+    appId: "1:422593854380:web:b024c9ae30d64ca3a79809"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const params = new URLSearchParams(window.location.search);
+  const shopId = params.get("shopId");
+
+  const shopRef = doc(db, "shops", shopId);
+  const menuRef = doc(db, "menus", shopId);
+
+  const shopSnap = await getDoc(shopRef);
+  const menuSnap = await getDoc(menuRef);
+
+  let shop = {};
+  let items = [];
+
+  if (shopSnap.exists()) {
+    shop = shopSnap.data();
+    document.getElementById("shopName").innerText = shop.name;
+  }
+
+  if (menuSnap.exists()) {
+    items = menuSnap.data().items || [];
+  }
+
+  const menuList = document.getElementById("menuList");
+
+  let selectedItems = [];
+
+items.forEach((item, index) => {
+  const div = document.createElement("div");
+  div.className = "item";
+
+  div.innerHTML = `
+    <div>
+      <strong>${item.name}</strong><br>
+      ₹${item.price}
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="changeQty(${index}, -1)">➖</button>
+      <span id="qty-${index}">0</span>
+      <button onclick="changeQty(${index}, 1)">➕</button>
+    </div>
+  `;
+
+  menuList.appendChild(div);
+});
+window.changeQty = function (index, change) {
+  if (!selectedItems[index]) {
+    selectedItems[index] = { ...items[index], qty: 0 };
+  }
+
+  selectedItems[index].qty += change;
+
+  if (selectedItems[index].qty < 0) {
+    selectedItems[index].qty = 0;
+  }
+
+  document.getElementById(`qty-${index}`).innerText =
+    selectedItems[index].qty;
+};
+
+
+  document.getElementById("orderBtn").onclick = async () => {
+  const orderItems = selectedItems.filter(i => i && i.qty > 0);
+
+  if (orderItems.length === 0) {
+    alert("Please select at least one item");
+    return;
+  }
+
+  // 🔑 Generate Order ID
+  const orderId = "ORD-" + Date.now();
+
+  let total = 0;
+  orderItems.forEach(i => {
+    total += i.price * i.qty;
+  });
+
+  // 💾 Save order to Firestore
+  await addDoc(collection(db, "orders"), {
+    orderId,
+    shopId,
+    items: orderItems,
+    total,
+    status: "Pending",
+    time: new Date()
+  });
+
+  // 🧾 Show receipt to customer
+  const receiptDiv = document.getElementById("receipt");
+  receiptDiv.style.display = "block";
+
+  let itemsHtml = "<ul>";
+
+orderItems.forEach(i => {
+  itemsHtml += `<li>${i.name} x ${i.qty} = ₹${i.price * i.qty}</li>`;
+});
+
+itemsHtml += "</ul>";
+
+receiptDiv.innerHTML = `
+  <h3>Order Placed Successfully ✅</h3>
+
+  <p><b>Order ID:</b> ${orderId}</p>
+
+  <p><b>Items Ordered:</b></p>
+  ${itemsHtml}
+
+  <p><b>Total:</b> ₹${total}</p>
+
+  <p>Please show this receipt to the vendor.</p>
+`;
+
+
+  // Disable order button to prevent duplicate order
+  document.getElementById("orderBtn").disabled = true;
+};
+
+</script>
+
+
+</body>
+</html>
