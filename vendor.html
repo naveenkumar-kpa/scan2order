@@ -132,7 +132,8 @@
     shopId = user.uid;
 
     // QR
-    const menuURL = window.location.origin + "/menu.html?shopId=" + shopId;
+    const menuURL = "https://naveenkumar-kpa.github.io/scan2order/menu.html?shopId=" + shopId;
+
     document.getElementById("qrImage").src =
       "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
       encodeURIComponent(menuURL);
@@ -245,3 +246,4 @@ window.deleteItem = async (id) => {
 
 </body>
 </html>
+
